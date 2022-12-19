@@ -10,11 +10,11 @@ import '../models/shopping_item.dart';
 
 class Shopping with ChangeNotifier {
 
-  List<ShoppingItem> _items = [];
+  Map<String,  List<ShoppingItem>> _items = {};
   List<Group> _groups = [];
 
-  List<ShoppingItem> get items {
-    return [..._items];
+  Map<String,  List<ShoppingItem>> get items {
+    return {..._items};
   }
 
   List<Group> get groups {
@@ -22,22 +22,41 @@ class Shopping with ChangeNotifier {
   }
 
   Future<void> fetchItems() async {
-    List<ShoppingItem> loadedItems = [];
+    print("in fetch items for debug");
+    Map<String,  List<ShoppingItem>> loadedItems = {};
     final dataList = await DBHelper.getData('user_shopping_list');
-    loadedItems = dataList.map((item) {
+    print("Length: " + dataList.length.toString());
+    print("Type: ${dataList.runtimeType}");
+    // loadedGroups = dataList.map((item) {
+    //   return Group(
+    //     id: item['id'],
+    //     name: item['name'],
+    //   );
+    // }).toList();
+    dataList.map((item) {
+      print("Inside map");
+      String groupId = item['groupId'];
       print("Group of item $item: ${item['groupId']}");
-      return ShoppingItem(
+       ShoppingItem i = ShoppingItem(
         id: item['id'],
         title: item['title'],
         status: item['status'],
         groupId: item['groupId'],
       );
+      if(loadedItems.containsKey(groupId)){
+        loadedItems[groupId].add(i);
+      }
+      else {
+        loadedItems[groupId] = [i];
+      }
+      print("Inside loaded items: $loadedItems");
     }).toList();
-    //print("Loaded Transactions $loadedTransactions");
-    //print("here in provider fetch");
+    print("Outside loaded items: $loadedItems");
     _items = loadedItems;
-    _items.sort();
-    //print("transactions: $transactions");
+    for(var value in _items.values) {
+      value.sort();
+    }
+    _items.forEach((k,v) => print('Ke-values => ${k}: ${v}'));
   }
 
   Future<void> addItem(String title, String groupId) async {
@@ -54,25 +73,26 @@ class Shopping with ChangeNotifier {
       id: moment,
       groupId: groupId,
     );
-    _items.add(newItem);
+    if(_items.containsKey(groupId)) {
+    _items[groupId].add(newItem);
+    }
+    else {
+      _items[groupId] = [newItem];
+    }
     notifyListeners();
   }
 
-  void editItem(String id, String title, int status) {
-    final index = _items.indexWhere((ele) => ele.id == id);
-    print("Before edit title: ${_items[index].title}");
-    print("Before edit status: ${_items[index].status}");
-    _items[index].title = title;
-    _items[index].status = status;
-    print("After edit title: ${_items[index].title}");
-    print("After edit title: ${_items[index].status}");
+  void editItem(String id, String title, int status, String groupId) {
+    final index = _items[groupId].indexWhere((ele) => ele.id == id);
+    _items[groupId][index].title = title;
+    _items[groupId][index].status = status;
     DBHelper.editItemData(
         'user_shopping_list', id, title, status);
     notifyListeners();
   }
 
-  void deleteItem(String id) {
-    _items.removeWhere((i) => i.id == id);
+  void deleteItem(String id, String groupId) {
+    _items[groupId].removeWhere((i) => i.id == id);
     DBHelper.deleteItemData('user_shopping_list', id);
     notifyListeners();
   }
@@ -81,7 +101,9 @@ class Shopping with ChangeNotifier {
     print("in fetch groups");
     List<Group> loadedGroups = [];
     final dataList = await DBHelper.getData('user_groups');
+    print("group Type: ${dataList.runtimeType}");
     loadedGroups = dataList.map((item) {
+      print("in fetch group map");
       return Group(
         id: item['id'],
         name: item['name'],
@@ -91,7 +113,7 @@ class Shopping with ChangeNotifier {
     //print("here in provider fetch");
     _groups = loadedGroups;
     for(var grp in groups) {
-      print("Group: ${grp.name}");
+      print("Group: ${grp.name} id: ${grp.id}");
     }
     // print("Group2: ${groups[1].name}");
     //print("transactions: $transactions");
@@ -120,7 +142,7 @@ class Shopping with ChangeNotifier {
 
   void deleteGroup(String id) {
     _groups.removeWhere((g) => g.id == id);
-    _items.removeWhere((i) => i.groupId == id);
+    _items.remove(id);
     DBHelper.deleteGroupData('user_groups', id);
     notifyListeners();
   }
