@@ -201,13 +201,22 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         });
   }
 
-  void _submitGroup() {
-    var enteredData = groupController.text;
-    if (enteredData.isEmpty) {
-      return;
+  void _submitGroup(bool create, [Group group]) {
+    if (create) {
+      final enteredData = groupController.text;
+      if (enteredData.isEmpty) {
+        return;
+      }
+      p.addGroup(enteredData);
+      groupController.clear();
+    } else {
+      final enteredData = editGroupController.text;
+      if (enteredData.isEmpty) {
+        return;
+      }
+      p.editGroup(group.id, enteredData);
+      editGroupController.clear();
     }
-    p.addGroup(enteredData);
-    groupController.clear();
     Navigator.of(context).pop();
   }
 
@@ -237,7 +246,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                       decoration: InputDecoration(labelText: 'Group Name'),
                       textCapitalization: TextCapitalization.sentences,
                       controller: groupController,
-                      onSubmitted: (_) => _submitGroup(),
+                      onSubmitted: (_) => _submitGroup(true),
                     ),
                     SizedBox(
                       height: 20,
@@ -248,7 +257,55 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                           .of(context)
                           .primaryColor,
                       textColor: Colors.white,
-                      onPressed: () => _submitGroup(),
+                      onPressed: () => _submitGroup(true),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  void _editGroup(Group group, BuildContext ctx) {
+    editGroupController.text = group.name;
+    // titleController.text = key;
+    showModalBottomSheet(
+        context: ctx,
+        builder: (bctx) {
+          return Card(
+            elevation: 5,
+            child: Container(
+              padding: EdgeInsets.only(
+                top: 10,
+                left: 10,
+                right: 10,
+                bottom: MediaQuery
+                    .of(context)
+                    .viewInsets
+                    .bottom + 10,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(labelText: 'Title'),
+                      textCapitalization: TextCapitalization.sentences,
+                      controller: editGroupController,
+                      onSubmitted: (_) => _submitGroup(false, group),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    RaisedButton(
+                      child: Text('Edit Item'),
+                      color: Theme
+                          .of(context)
+                          .primaryColor,
+                      textColor: Colors.white,
+                      onPressed: () => _submitGroup(false, group),
                     )
                   ],
                 ),
@@ -297,8 +354,26 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     isOpen: false,
                     headerBackgroundColor: Colors.black38,
                     headerBackgroundColorOpened: Colors.black54,
-                    header: Text(grp.name, style: _headerStyle),
-                    rightIcon: IconButton(icon: Icon(Icons.add), onPressed: () => _addItem(context, grp.id),),
+                    header: Row(
+                      children: [
+                        Text(grp.name, style: _headerStyle),
+                        Spacer(),
+                        IconButton(icon: Icon(Icons.add), onPressed: () => _addItem(context, grp.id),),
+                        IconButton(icon: Icon(Icons.edit), onPressed: () => _editGroup(grp, context),),
+                        IconButton(icon: Icon(Icons.delete, color: Colors.red,), onPressed: () => p.deleteGroup(grp.id),),
+                      ],
+                    ),
+                    rightIcon: Icon(Icons.arrow_drop_down_outlined),
+                    // header: Text(grp.name, style: _headerStyle),
+                    // flipRightIconIfOpen: false,
+                    // rightIcon: Row(
+                    //   children: [
+                    //     Icon(Icons.arrow_drop_down_outlined),
+                    //     IconButton(icon: Icon(Icons.add), onPressed: () => _addItem(context, grp.id),),
+                    //     IconButton(icon: Icon(Icons.edit), onPressed: () => _editGroup(grp, context),),
+                    //     IconButton(icon: Icon(Icons.delete, color: Colors.red,), onPressed: () => p.deleteGroup(grp.id),),
+                    //   ],
+                    // ),
                     content: (!items.containsKey(grp.id) || items[grp.id].length == 0) ? null : ListView.builder(
                       shrinkWrap: true,
                       itemBuilder: (ctx, index) {
