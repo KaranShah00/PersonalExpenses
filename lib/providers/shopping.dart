@@ -1,6 +1,7 @@
 // import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:personalexpenses/models/group.dart';
 
 // import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,19 +11,26 @@ import '../models/shopping_item.dart';
 class Shopping with ChangeNotifier {
 
   List<ShoppingItem> _items = [];
+  List<Group> _groups = [];
 
   List<ShoppingItem> get items {
     return [..._items];
+  }
+
+  List<Group> get groups {
+    return [..._groups];
   }
 
   Future<void> fetchItems() async {
     List<ShoppingItem> loadedItems = [];
     final dataList = await DBHelper.getData('user_shopping_list');
     loadedItems = dataList.map((item) {
+      print("Group of item $item: ${item['groupId']}");
       return ShoppingItem(
         id: item['id'],
         title: item['title'],
         status: item['status'],
+        groupId: item['groupId'],
       );
     }).toList();
     //print("Loaded Transactions $loadedTransactions");
@@ -32,17 +40,19 @@ class Shopping with ChangeNotifier {
     //print("transactions: $transactions");
   }
 
-  Future<void> addItem(String title) async {
+  Future<void> addItem(String title, String groupId) async {
     final moment = DateTime.now().toString();
     DBHelper.insert('user_shopping_list', {
       'id': moment,
       'title': title,
       'status': 0,
+      'groupId': groupId,
     });
     final newItem = ShoppingItem(
       title: title,
       status: 0,
       id: moment,
+      groupId: groupId,
     );
     _items.add(newItem);
     notifyListeners();
@@ -64,6 +74,54 @@ class Shopping with ChangeNotifier {
   void deleteItem(String id) {
     _items.removeWhere((i) => i.id == id);
     DBHelper.deleteItemData('user_shopping_list', id);
+    notifyListeners();
+  }
+
+  Future<void> fetchGroups() async {
+    print("in fetch groups");
+    List<Group> loadedGroups = [];
+    final dataList = await DBHelper.getData('user_groups');
+    loadedGroups = dataList.map((item) {
+      return Group(
+        id: item['id'],
+        name: item['name'],
+      );
+    }).toList();
+    //print("Loaded Transactions $loadedTransactions");
+    //print("here in provider fetch");
+    _groups = loadedGroups;
+    for(var grp in groups) {
+      print("Group: ${grp.name}");
+    }
+    // print("Group2: ${groups[1].name}");
+    //print("transactions: $transactions");
+  }
+
+  Future<void> addGroup(String name) async {
+    final moment = DateTime.now().toString();
+    DBHelper.insert('user_groups', {
+      'id': moment,
+      'name': name,
+    });
+    final newGroup = Group(
+      id: moment,
+      name: name,
+    );
+    _groups.add(newGroup);
+    notifyListeners();
+  }
+
+  void editGroup(String id, String name) {
+    final index = _groups.indexWhere((ele) => ele.id == id);
+    _groups[index].name = name;
+    DBHelper.editGroupData('user_groups', id, name);
+    notifyListeners();
+  }
+
+  void deleteGroup(String id) {
+    _groups.removeWhere((g) => g.id == id);
+    _items.removeWhere((i) => i.groupId == id);
+    DBHelper.deleteGroupData('user_groups', id);
     notifyListeners();
   }
 

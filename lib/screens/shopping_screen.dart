@@ -15,6 +15,8 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
   List<ShoppingItem> items = [];
   final titleController = TextEditingController();
   var editTitleController = TextEditingController();
+  final groupController = TextEditingController();
+  var editGroupController = TextEditingController();
   var p;
   var _isLoading;
   // var _isInit = true;
@@ -77,7 +79,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       if (enteredData.isEmpty) {
         return;
       }
-    p.addItem(enteredData);
+      p.addItem(enteredData, "1"); // edit out group id
     titleController.clear();
     }
     else {
@@ -180,6 +182,58 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         });
   }
 
+  void _submitGroup() {
+    var enteredData = groupController.text;
+    if(enteredData.isEmpty) {
+      return;
+    }
+    p.addGroup(enteredData);
+    groupController.clear();
+    Navigator.of(context).pop();
+  }
+
+  void _addGroup(BuildContext ctx) {
+    print("in add group");
+    showModalBottomSheet(
+        context: ctx,
+        builder: (bctx) {
+          return Card(
+            elevation: 5,
+            child: Container(
+              padding: EdgeInsets.only(
+                top: 10,
+                left: 10,
+                right: 10,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(labelText: 'Group Name'),
+                      textCapitalization: TextCapitalization.sentences,
+                      controller: groupController,
+                      onSubmitted: (_) => _submitGroup(),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    RaisedButton(
+                      child: Text('Add Group'),
+                      color: Theme.of(context).primaryColor,
+                      textColor: Colors.white,
+                      onPressed: () => _submitGroup(),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     print("in shopping build");
@@ -192,7 +246,11 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         title: Text('Shopping List'),
         actions: [
           IconButton(
-              icon: Icon(Icons.add), onPressed: () => _addItem(context))
+              icon: Icon(Icons.add), onPressed: () => _addItem(context)),
+          FlatButton(
+              child: Text("Add group"), onPressed: () => _addGroup(context)),
+          FlatButton(
+              child: Text("Get group"), onPressed: () => p.fetchGroups()),
         ],
       ),
       drawer: MainDrawer(),
@@ -202,7 +260,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             // key: ValueKey(key),
               value: items[index].status == 1 ? true : false,
               title: Text(
-                items[index].title,
+                items[index].title + (items[index].groupId  ??  ""),
                 style: TextStyle(
                     fontSize: 20,
                     decoration: items[index].status == 1

@@ -4,11 +4,13 @@ class ShoppingItem extends Comparable{
   String id;
   String title;
   int status;
+  String groupId;
 
   ShoppingItem({
     @required this.id,
     @required this.title,
     @required this.status,
+    this.groupId,
   });
 
   @override

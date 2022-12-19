@@ -6,11 +6,24 @@ class DBHelper {
   static Future<Database> database() async {
     final dbPath = await sql.getDatabasesPath();
     return sql.openDatabase(path.join(dbPath, 'expenses.db'),
+        onConfigure: (db) async {
+          await db.execute('PRAGMA foreign_keys = ON');
+        },
         onCreate: (db, version) async{
           await db.execute(
               'CREATE TABLE user_expenses(id TEXT PRIMARY KEY, title TEXT, amount INTEGER, date TEXT)');
-          await db.execute('CREATE TABLE user_shopping_list(id TEXT PRIMARY KEY, title TEXT, status INTEGER)');
+          await db.execute('CREATE TABLE user_shopping_list(id TEXT PRIMARY KEY, '
+              '             title TEXT, status INTEGER, groupId TEXT,'
+              '             FOREIGN KEY (groupId) REFERENCES user_groups (id) ON DELETE CASCADE ON UPDATE CASCADE)');
+          await db.execute('CREATE TABLE user_groups(id TEXT PRIMARY KEY, name TEXT)');
         }, version: 1);
+    // var raw = await db.execute("CREATE TABLE MarketInfoes ("
+    //     "id integer primary key, userId integer, typeId integer,"
+    //     "gradeId integer, price DOUBLE"
+    //     "FOREIGN KEY (typeId) REFERENCES Type (id) ON DELETE NO ACTION ON UPDATE NO ACTION,"
+    //     "FOREIGN KEY (userId) REFERENCES User (id) ON DELETE NO ACTION ON UPDATE NO ACTION,"
+    //     "FOREIGN KEY (gradeId) REFERENCES Grade (id) ON DELETE NO ACTION ON UPDATE NO ACTION"
+    //     ")");
   }
 
   static Future<void> insert(String table, Map<String, Object> data) async {
@@ -75,6 +88,17 @@ class DBHelper {
   static Future<void> deleteItemData(String table, String id) async {
     final db = await DBHelper.database();
     db.rawDelete('DELETE FROM user_shopping_list WHERE id=?', [id]);
+  }
+
+  static Future<void> editGroupData(String table, String id, String name) async {
+    final db = await DBHelper.database();
+    db.rawUpdate('UPDATE user_groups SET name = ? WHERE id = ?',
+        [name, id]);
+  }
+
+  static Future<void> deleteGroupData(String table, String id) async {
+    final db = await DBHelper.database();
+    db.rawDelete('DELETE FROM user_groups WHERE id=?', [id]);
   }
 
   static Future<void> editShoppingData(String table, String id, int amount) async {
