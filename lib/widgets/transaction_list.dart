@@ -16,7 +16,7 @@ class TransactionList extends StatelessWidget {
     final p = Provider.of<Transactions>(context);
     final _userTransactions = p.monthlyTransactions;
     return _userTransactions.isEmpty
-        ? LayoutBuilder(builder: (ctx, constraints) {
+        ? LayoutBuilder(builder: (bctx, constraints) {
             return Column(
               children: <Widget>[
                 Text(
@@ -62,7 +62,8 @@ class TransactionList extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             FlatButton.icon(
-                              onPressed: () => _startEditAmount(ctx, _userTransactions[index].id),
+                              onPressed: () => _startEditAmount(
+                                  ctx, _userTransactions[index].id),
                               icon: Icon(Icons.add),
                               label: Text('Add'),
                             ),
@@ -73,8 +74,42 @@ class TransactionList extends StatelessWidget {
                               label: Text('Edit'),
                             ),
                             FlatButton.icon(
-                              onPressed: () => p.deleteTransaction(
-                                  _userTransactions[index].id),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Delete expense'),
+                                    content: const Text(
+                                        'Are you sure you want to delete this expense?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          p.deleteTransaction(
+                                              _userTransactions[index].id);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Yes',
+                                          style: TextStyle(
+                                              color: Colors.red, fontSize: 18),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'No',
+                                          style: TextStyle(
+                                            color: Colors.deepPurple,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                               icon: Icon(Icons.delete),
                               label: Text('Delete'),
                               textColor: Theme.of(context).errorColor,
@@ -87,7 +122,8 @@ class TransactionList extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              onPressed: () => _startEditAmount(ctx, _userTransactions[index].id),
+                              onPressed: () => _startEditAmount(
+                                  ctx, _userTransactions[index].id),
                               icon: Icon(Icons.add),
                             ),
                             IconButton(
@@ -97,8 +133,44 @@ class TransactionList extends StatelessWidget {
                             IconButton(
                               icon: Icon(Icons.delete),
                               color: Theme.of(context).errorColor,
-                              onPressed: () => p.deleteTransaction(
-                                  _userTransactions[index].id),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) =>
+                                      AlertDialog(
+                                        title: const Text('Delete expense'),
+                                        content: const Text(
+                                            'Are you sure you want to delete this expense?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              p.deleteTransaction(
+                                                  _userTransactions[index].id);
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text(
+                                              'Yes',
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 18),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text(
+                                              'No',
+                                              style: TextStyle(
+                                                color: Colors.deepPurple,
+                                                fontSize: 18,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                );
+                              },
                             ),
                           ],
                         ),
