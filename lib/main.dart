@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personalexpenses/providers/groups.dart';
 
 import 'package:provider/provider.dart';
 
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (ctx) => Shopping(),
         ),
+        ChangeNotifierProvider(
+          create: (ctx) => Groups(),
+        )
       ],
       child: MaterialApp(
         title: 'Personal Expenses',

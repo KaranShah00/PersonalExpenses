@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personalexpenses/screens/accordion_page.dart';
 
 import '../screens/expenses_screen.dart';
 import '../screens/budget_screen.dart';
@@ -85,7 +86,7 @@ class MainDrawer extends StatelessWidget {
             ),
             onTap: () => Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (ctx) => HistoryScreen(),
+                builder: (ctx) => AccordionPage(),
               ),
             ),
           ),

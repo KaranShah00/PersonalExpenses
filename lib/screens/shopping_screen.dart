@@ -6,8 +6,10 @@ import 'package:accordion/accordion.dart';
 import 'package:accordion/controllers.dart';
 
 import '../models/group.dart';
+import '../providers/groups.dart';
 import '../providers/shopping.dart';
 import '../widgets/main_drawer.dart';
+import '../widgets/accordion_content.dart';
 
 class ShoppingScreen extends StatefulWidget {
   @override
@@ -22,6 +24,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
   final groupController = TextEditingController();
   var editGroupController = TextEditingController();
   var p;
+  var p2;
   var _isLoading;
 
   final _headerStyle = const TextStyle(
@@ -37,10 +40,12 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       print("inside widget binding");
-      p = Provider.of<Shopping>(context, listen: false);
-      await p.fetchItems();
+      p = Provider.of<Groups>(context, listen: false);
+      p2 = Provider.of<Shopping>(context, listen: false);
+      // await p.fetchItems();
       print("fetched items");
       await p.fetchGroups();
+      groups = p.groups;
       // print("items before $items");
       // await p.fetchItems();
       //   print("inside");
@@ -89,7 +94,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
       if (enteredData.isEmpty) {
         return;
       }
-      p.addItem(enteredData, groupId); // edit out group id
+      p2.addItem(enteredData, groupId); // edit out group id
       titleController.clear();
     } else {
       final enteredData = editTitleController.text;
@@ -97,7 +102,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         return;
       }
       print("inside else");
-      p.editItem(item.id, enteredData, item.status, groupId);
+      p2.editItem(item.id, enteredData, item.status, groupId);
       editTitleController.clear();
     }
     print("before pop");
@@ -118,7 +123,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 left: 10,
                 right: 10,
                 bottom: MediaQuery
-                    .of(context)
+                    .of(bctx)
                     .viewInsets
                     .bottom + 10,
               ),
@@ -139,7 +144,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     RaisedButton(
                       child: Text('Add Item'),
                       color: Theme
-                          .of(context)
+                          .of(bctx)
                           .primaryColor,
                       textColor: Colors.white,
                       onPressed: () => _submitData(true, groupId),
@@ -152,56 +157,56 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
         });
   }
 
-  void _editItem(ShoppingItem item, BuildContext ctx, String groupId) {
-    editTitleController.text = item.title;
-    print("In edit text: ${editTitleController.text}");
-    // titleController.text = key;
-    showModalBottomSheet(
-        context: ctx,
-        builder: (bctx) {
-          return Card(
-            elevation: 5,
-            child: Container(
-              padding: EdgeInsets.only(
-                top: 10,
-                left: 10,
-                right: 10,
-                bottom: MediaQuery
-                    .of(context)
-                    .viewInsets
-                    .bottom + 10,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      decoration: InputDecoration(labelText: 'Title'),
-                      textCapitalization: TextCapitalization.sentences,
-                      controller: editTitleController,
-                      onSubmitted: (_) => _submitData(false, groupId, item),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    RaisedButton(
-                      child: Text('Edit Item'),
-                      color: Theme
-                          .of(context)
-                          .primaryColor,
-                      textColor: Colors.white,
-                      onPressed: () => _submitData(false, groupId, item),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        });
-  }
+  // void _editItem(ShoppingItem item, BuildContext ctx, String groupId) {
+  //   editTitleController.text = item.title;
+  //   print("In edit text: ${editTitleController.text}");
+  //   // titleController.text = key;
+  //   showModalBottomSheet(
+  //       context: ctx,
+  //       builder: (bctx) {
+  //         return Card(
+  //           elevation: 5,
+  //           child: Container(
+  //             padding: EdgeInsets.only(
+  //               top: 10,
+  //               left: 10,
+  //               right: 10,
+  //               bottom: MediaQuery
+  //                   .of(context)
+  //                   .viewInsets
+  //                   .bottom + 10,
+  //             ),
+  //             child: SingleChildScrollView(
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.end,
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   TextField(
+  //                     decoration: InputDecoration(labelText: 'Title'),
+  //                     textCapitalization: TextCapitalization.sentences,
+  //                     controller: editTitleController,
+  //                     onSubmitted: (_) => _submitData(false, groupId, item),
+  //                   ),
+  //                   SizedBox(
+  //                     height: 20,
+  //                   ),
+  //                   RaisedButton(
+  //                     child: Text('Edit Item'),
+  //                     color: Theme
+  //                         .of(context)
+  //                         .primaryColor,
+  //                     textColor: Colors.white,
+  //                     onPressed: () => _submitData(false, groupId, item),
+  //                   )
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         );
+  //       });
+  // }
 
-  void _submitGroup(bool create, [Group group]) {
+  void submitGroup(bool create, [Group group]) {
     if (create) {
       final enteredData = groupController.text;
       if (enteredData.isEmpty) {
@@ -233,7 +238,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 left: 10,
                 right: 10,
                 bottom: MediaQuery
-                    .of(context)
+                    .of(bctx)
                     .viewInsets
                     .bottom + 10,
               ),
@@ -246,7 +251,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                       decoration: InputDecoration(labelText: 'Group Name'),
                       textCapitalization: TextCapitalization.sentences,
                       controller: groupController,
-                      onSubmitted: (_) => _submitGroup(true),
+                      onSubmitted: (_) => submitGroup(true),
                     ),
                     SizedBox(
                       height: 20,
@@ -254,10 +259,10 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     RaisedButton(
                       child: Text('Add Group'),
                       color: Theme
-                          .of(context)
+                          .of(bctx)
                           .primaryColor,
                       textColor: Colors.white,
-                      onPressed: () => _submitGroup(true),
+                      onPressed: () => submitGroup(true),
                     )
                   ],
                 ),
@@ -281,7 +286,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 left: 10,
                 right: 10,
                 bottom: MediaQuery
-                    .of(context)
+                    .of(bctx)
                     .viewInsets
                     .bottom + 10,
               ),
@@ -294,7 +299,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                       decoration: InputDecoration(labelText: 'Title'),
                       textCapitalization: TextCapitalization.sentences,
                       controller: editGroupController,
-                      onSubmitted: (_) => _submitGroup(false, group),
+                      onSubmitted: (_) => submitGroup(false, group),
                     ),
                     SizedBox(
                       height: 20,
@@ -302,10 +307,10 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     RaisedButton(
                       child: Text('Edit Item'),
                       color: Theme
-                          .of(context)
+                          .of(bctx)
                           .primaryColor,
                       textColor: Colors.white,
-                      onPressed: () => _submitGroup(false, group),
+                      onPressed: () => submitGroup(false, group),
                     )
                   ],
                 ),
@@ -318,11 +323,11 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
   @override
   Widget build(BuildContext context) {
     print("in shopping build");
-    items = Provider
-        .of<Shopping>(context)
-        .items;
+    // items = Provider
+    //     .of<Shopping>(context)
+    //     .items;
     groups = Provider
-        .of<Shopping>(context)
+        .of<Groups>(context)
         .groups;
     // if(p != null) {
     // items = p.items;
@@ -339,87 +344,81 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           ? Center(
         child: CircularProgressIndicator(),
       )
-          : SingleChildScrollView(
-        child: Accordion(
-          // maxOpenSections: 2,
-          headerBackgroundColorOpened: Colors.black54,
-          scaleWhenAnimating: true,
-          openAndCloseAnimation: true,
-          headerPadding:
-          const EdgeInsets.symmetric(vertical: 7, horizontal: 15),
-            children: groups
-                .map(
-                  (grp) =>
-                  AccordionSection(
-                    isOpen: false,
-                    headerBackgroundColor: Colors.black38,
-                    headerBackgroundColorOpened: Colors.black54,
-                    header: Row(
-                      children: [
-                        Text(grp.name, style: _headerStyle),
-                        Spacer(),
-                        IconButton(icon: Icon(Icons.add), onPressed: () => _addItem(context, grp.id),),
-                        IconButton(icon: Icon(Icons.edit), onPressed: () => _editGroup(grp, context),),
-                        IconButton(icon: Icon(Icons.delete, color: Colors.red,), onPressed: () => p.deleteGroup(grp.id),),
-                      ],
-                    ),
-                    rightIcon: Icon(Icons.arrow_drop_down_outlined),
-                    // header: Text(grp.name, style: _headerStyle),
-                    // flipRightIconIfOpen: false,
-                    // rightIcon: Row(
-                    //   children: [
-                    //     Icon(Icons.arrow_drop_down_outlined),
-                    //     IconButton(icon: Icon(Icons.add), onPressed: () => _addItem(context, grp.id),),
-                    //     IconButton(icon: Icon(Icons.edit), onPressed: () => _editGroup(grp, context),),
-                    //     IconButton(icon: Icon(Icons.delete, color: Colors.red,), onPressed: () => p.deleteGroup(grp.id),),
-                    //   ],
-                    // ),
-                    content: (!items.containsKey(grp.id) || items[grp.id].length == 0) ? null : ListView.builder(
-                      shrinkWrap: true,
-                      itemBuilder: (ctx, index) {
-                        return CheckboxListTile(
-                          // key: ValueKey(key),
-                            value: items[grp.id][index].status == 1 ? true : false,
-                            title: Text(
-                              items[grp.id][index].title,
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  decoration: items[grp.id][index].status == 1
-                                      ? TextDecoration.lineThrough
-                                      : TextDecoration.none),
-                            ),
-                            secondary: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit,
-                                  ),
-                                  onPressed: () =>
-                                      _editItem(items[grp.id][index], ctx, grp.id),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () {
-                                    p.deleteItem(items[grp.id][index].id, grp.id);
-                                  },
-                                ),
-                              ],
-                            ),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (val) {
-                              p.editItem(items[grp.id][index].id, items[grp.id][index].title,
-                                  items[grp.id][index].status == 1 ? 0 : 1, grp.id);
-                            });
+          : Accordion(
+        paddingListHorizontal: 25,
+        maxOpenSections: 100,
+        headerBackgroundColorOpened: Colors.black54,
+        scaleWhenAnimating: true,
+        openAndCloseAnimation: true,
+        headerPadding:
+        const EdgeInsets.symmetric(vertical: 7, horizontal: 15),
+        children: groups
+            .map(
+              (grp) =>
+              AccordionSection(
+                isOpen: true,
+                headerBackgroundColor: Colors.deepPurple.shade700,
+                //Colors.black38,
+                headerBackgroundColorOpened: Colors.deepPurple.shade900,
+                //Colors.black54,
+                flipRightIconIfOpen: true,
+                header: Row(
+                  children: [
+                    Text(grp.name, style: _headerStyle),
+                    Spacer(),
+                    IconButton(icon: Icon(Icons.add, color: Colors.white,),
+                      onPressed: () => _addItem(context, grp.id),),
+                    IconButton(icon: Icon(Icons.edit, color: Colors.white),
+                      onPressed: () => _editGroup(grp, context),),
+                    IconButton(icon: Icon(Icons.delete, color: Colors.red,),
+                      onPressed: ()
+                      {
+                      showDialog(
+                      context: context,
+                      builder: (context) =>
+                      AlertDialog(
+                      title: const Text('Delete Group'),
+                      content:
+                      const Text(
+                      'Are you sure you want to delete this group?'),
+                      actions: [
+                      TextButton(
+                      onPressed: () {
+                      p.deleteGroup(grp.id);
+                      Navigator.pop(context);
                       },
-                      itemCount: items[grp.id].length,
+                      child: const Text(
+                      'Yes',
+                      style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 18),
+                      ),
+                      ),
+                      TextButton(
+                      onPressed: () {
+                      Navigator.pop(context);
+                    },
+                      child: const Text(
+                        'No',
+                        style: TextStyle(
+                           color: Colors.deepPurple,
+                          fontSize: 18,
+                        ),
+                      ),
                     ),
-                  ),
-            ).toList(),
+                  ],
+                ),
+              );
+          },
+        ),
+        ],
       ),
-    ),);
+      rightIcon: Icon(
+          Icons.arrow_drop_down_outlined, color: Colors.white),
+      content: AccordionContent(grp),
+    ),
+    ).toList(),
+    ),
+    );
   }
 }
